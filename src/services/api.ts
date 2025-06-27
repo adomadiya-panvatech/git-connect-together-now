@@ -119,6 +119,30 @@ export const api = {
   
   getOpportunityStats: () => apiRequest('/api/opportunities/stats'),
 
+  // Accounts endpoints
+  getAccounts: () => apiRequest('/accounts'),
+  
+  createAccount: (accountData: any) =>
+    apiRequest('/accounts', {
+      method: 'POST',
+      body: JSON.stringify(accountData),
+    }),
+  
+  getAccount: (id: string) => apiRequest(`/accounts/${id}`),
+  
+  updateAccount: (id: string, accountData: any) =>
+    apiRequest(`/accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(accountData),
+    }),
+  
+  deleteAccount: (id: string) =>
+    apiRequest(`/accounts/${id}`, {
+      method: 'DELETE',
+    }),
+  
+  getAccountStats: () => apiRequest('/accounts/stats'),
+
   // Dashboard endpoints
   getDashboardSummary: () => apiRequest('/dashboard/summary'),
   

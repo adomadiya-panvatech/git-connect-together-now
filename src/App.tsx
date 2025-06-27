@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -21,8 +22,11 @@ import CRM from "./pages/CRM";
 import { ContactModal } from '@/components/ContactModal';
 import { ContactEditModal } from '@/components/ContactEditModal';
 import { LeadModal } from '@/components/LeadModal';
+import { LeadEditModal } from '@/components/LeadEditModal';
 import { OpportunityModal } from '@/components/OpportunityModal';
+import { OpportunityEditModal } from '@/components/OpportunityEditModal';
 import { AccountModal } from '@/components/AccountModal';
+import { AccountEditModal } from '@/components/AccountEditModal';
 import { SMSModal } from '@/components/SMSModal';
 import { EmailModal } from '@/components/EmailModal';
 
@@ -31,10 +35,20 @@ const queryClient = new QueryClient();
 const App = () => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isEditContactModalOpen, setIsEditContactModalOpen] = useState(false);
-  const [editContact, setEditContact] = useState(null); // store contact being edited
+  const [editContact, setEditContact] = useState(null);
+  
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false);
+  const [editLead, setEditLead] = useState(null);
+  
   const [isOpportunityModalOpen, setIsOpportunityModalOpen] = useState(false);
+  const [isEditOpportunityModalOpen, setIsEditOpportunityModalOpen] = useState(false);
+  const [editOpportunity, setEditOpportunity] = useState(null);
+  
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isEditAccountModalOpen, setIsEditAccountModalOpen] = useState(false);
+  const [editAccount, setEditAccount] = useState(null);
+  
   const [isSMSModalOpen, setIsSMSModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
@@ -45,8 +59,20 @@ const App = () => {
       setIsEditContactModalOpen(true);
     },
     onOpenLeadModal: () => setIsLeadModalOpen(true),
+    onOpenEditLeadModal: (lead) => {
+      setEditLead(lead);
+      setIsEditLeadModalOpen(true);
+    },
     onOpenOpportunityModal: () => setIsOpportunityModalOpen(true),
+    onOpenEditOpportunityModal: (opportunity) => {
+      setEditOpportunity(opportunity);
+      setIsEditOpportunityModalOpen(true);
+    },
     onOpenAccountModal: () => setIsAccountModalOpen(true),
+    onOpenEditAccountModal: (account) => {
+      setEditAccount(account);
+      setIsEditAccountModalOpen(true);
+    },
     onOpenSMSModal: () => setIsSMSModalOpen(true),
     onOpenEmailModal: () => setIsEmailModalOpen(true),
   };
@@ -88,13 +114,37 @@ const App = () => {
             isOpen={isLeadModalOpen} 
             onClose={() => setIsLeadModalOpen(false)} 
           />
+          <LeadEditModal 
+            isOpen={isEditLeadModalOpen}
+            onClose={() => {
+              setIsEditLeadModalOpen(false);
+              setEditLead(null);
+            }}
+            lead={editLead}
+          />
           <OpportunityModal 
             isOpen={isOpportunityModalOpen} 
             onClose={() => setIsOpportunityModalOpen(false)} 
           />
+          <OpportunityEditModal 
+            isOpen={isEditOpportunityModalOpen}
+            onClose={() => {
+              setIsEditOpportunityModalOpen(false);
+              setEditOpportunity(null);
+            }}
+            opportunity={editOpportunity}
+          />
           <AccountModal 
             isOpen={isAccountModalOpen} 
             onClose={() => setIsAccountModalOpen(false)} 
+          />
+          <AccountEditModal 
+            isOpen={isEditAccountModalOpen}
+            onClose={() => {
+              setIsEditAccountModalOpen(false);
+              setEditAccount(null);
+            }}
+            account={editAccount}
           />
           <SMSModal 
             isOpen={isSMSModalOpen} 
