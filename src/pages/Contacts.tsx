@@ -1,56 +1,54 @@
 
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { Search, Filter, Eye, Edit2, Phone, Mail, User, Users } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Eye, Edit2, Users, UserPlus, TrendingUp, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useContacts, useContactStats, useDeleteContact } from '@/hooks/useContacts';
-// import { ContactEditModal } from '@/components/ContactEditModal';
 
 interface ContactsProps {
   onOpenContactModal?: () => void;
-  onOpenEditContactModal?: () => void;
   onOpenLeadModal?: () => void;
   onOpenOpportunityModal?: () => void;
   onOpenAccountModal?: () => void;
   onOpenSMSModal?: () => void;
   onOpenEmailModal?: () => void;
+  onOpenEditContactModal?: (contact: any) => void;
+  onOpenEditLeadModal?: (lead: any) => void;
+  onOpenEditOpportunityModal?: (opportunity: any) => void;
+  onOpenEditAccountModal?: (account: any) => void;
 }
 
 const Contacts: React.FC<ContactsProps> = ({
   onOpenContactModal,
-  onOpenEditContactModal,
   onOpenLeadModal,
   onOpenOpportunityModal,
   onOpenAccountModal,
   onOpenSMSModal,
-  onOpenEmailModal
+  onOpenEmailModal,
+  onOpenEditContactModal,
+  onOpenEditLeadModal,
+  onOpenEditOpportunityModal,
+  onOpenEditAccountModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedContact, setSelectedContact] = useState<any>(null);
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
 
-  // const { data: contacts = [], isLoading: contactsLoading, error: contactsError } = useContacts();
-  const { data: response, isLoading: contactsLoading, error: contactsError } = useContacts();
-  const contacts = response?.data ?? [];
+  const { data: contactsResponse, isLoading: contactsLoading, error: contactsError } = useContacts();
+  const contacts = Array.isArray(contactsResponse?.data) ? contactsResponse.data : [];
+
   const { data: stats } = useContactStats();
   const deleteContactMutation = useDeleteContact();
 
-  console.log("contacts", contacts);
-
-  const filteredContacts = contacts.filter((contact: any) => {
+  const filteredContacts = Array.isArray(contacts) ? contacts.filter((contact: any) => {
     const matchesSearch = contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.company?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || contact.status?.toLowerCase() === filterStatus.toLowerCase();
     return matchesSearch && matchesFilter;
-  });
-
-  console.log("filteredContacts", filteredContacts);
+  }) : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -64,10 +62,10 @@ const Contacts: React.FC<ContactsProps> = ({
   const getSourceColor = (source: string) => {
     switch (source) {
       case 'Website': return 'bg-blue-100 text-blue-800';
-      case 'Referral': return 'bg-green-100 text-green-800';
       case 'LinkedIn': return 'bg-purple-100 text-purple-800';
-      case 'Cold Call': return 'bg-orange-100 text-orange-800';
+      case 'Referral': return 'bg-green-100 text-green-800';
       case 'Trade Show': return 'bg-yellow-100 text-yellow-800';
+      case 'Cold Call': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -78,19 +76,10 @@ const Contacts: React.FC<ContactsProps> = ({
     }
   };
 
-  const handleViewContact = (contact: any) => {
-    setSelectedContact(contact);
-    setViewModalOpen(true);
-  };
-
   const handleEditContact = (contact: any) => {
-    setSelectedContact(contact);
-    setEditModalOpen(true);
-  };
-
-  const handleEditFromView = () => {
-    setViewModalOpen(false);
-    setEditModalOpen(true);
+    if (onOpenEditContactModal) {
+      onOpenEditContactModal(contact);
+    }
   };
 
   if (contactsError) {
@@ -112,7 +101,7 @@ const Contacts: React.FC<ContactsProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-            <p className="text-gray-600 mt-1">Manage your business contacts and relationships</p>
+            <p className="text-gray-600 mt-1">Manage your customer relationships and contacts</p>
           </div>
           <Button
             onClick={onOpenContactModal}
@@ -136,14 +125,30 @@ const Contacts: React.FC<ContactsProps> = ({
                 {stats?.total || contacts.length}
               </div>
               <p className="text-sm text-green-600">
-                {stats?.growth || '+2 this week'}
+                {stats?.growth || '+5 this week'}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <User className="w-4 h-4" />
+                <UserPlus className="w-4 h-4" />
+                New This Month
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">
+                {stats?.newThisMonth || '12'}
+              </div>
+              <p className="text-sm text-blue-600">
+                {stats?.monthlyGrowth || '20% increase'}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
                 Active Contacts
               </CardTitle>
             </CardHeader>
@@ -151,37 +156,21 @@ const Contacts: React.FC<ContactsProps> = ({
               <div className="text-2xl font-bold text-gray-900">
                 {stats?.active || contacts.filter((c: any) => c.status === 'active').length}
               </div>
-              <p className="text-sm text-blue-600">
-                {stats?.engagement || '60% engagement'}
-              </p>
+              <p className="text-sm text-green-600">Engaged recently</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                Recent Calls
+                <Star className="w-4 h-4" />
+                Top Prospects
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                {stats?.recentCalls || '12'}
+                {stats?.prospects || contacts.filter((c: any) => c.status === 'prospect').length}
               </div>
-              <p className="text-sm text-green-600">This week</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Email Response
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {stats?.emailResponse || '85%'}
-              </div>
-              <p className="text-sm text-green-600">Response rate</p>
+              <p className="text-sm text-yellow-600">High potential</p>
             </CardContent>
           </Card>
         </div>
@@ -233,8 +222,7 @@ const Contacts: React.FC<ContactsProps> = ({
                       <TableHead>Source</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Last Contact</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead className="w-[150px]">Actions</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -242,7 +230,7 @@ const Contacts: React.FC<ContactsProps> = ({
                       <TableRow key={contact.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">{contact.name}</TableCell>
                         <TableCell>{contact.company}</TableCell>
-                        <TableCell>{contact.position}</TableCell>
+                        <TableCell>{contact.position || contact.jobTitle}</TableCell>
                         <TableCell className="text-blue-600">{contact.email}</TableCell>
                         <TableCell className="text-gray-600">{contact.phone}</TableCell>
                         <TableCell>
@@ -257,38 +245,24 @@ const Contacts: React.FC<ContactsProps> = ({
                         </TableCell>
                         <TableCell>{contact.lastContact || contact.updatedAt}</TableCell>
                         <TableCell>
-                          <div className="flex gap-1 flex-wrap">
-                            {(Array.isArray(contact.tags)
-                              ? contact.tags
-                              : JSON.parse(contact.tags || '[]')
-                            ).slice(0, 2).map((tag: string, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewContact(contact)}
-                            >
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm">
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
+                            <Button 
+                              variant="ghost" 
                               size="sm"
-                              onClick={() => onOpenEditContactModal(contact)}
+                              onClick={() => handleEditContact(contact)}
                             >
                               <Edit2 className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={onOpenSMSModal}>
-                              <Phone className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={onOpenEmailModal}>
-                              <Mail className="w-4 h-4" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteContact(contact.id)}
+                              disabled={deleteContactMutation.isPending}
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -306,14 +280,6 @@ const Contacts: React.FC<ContactsProps> = ({
           </CardContent>
         </Card>
       </div>
-
-      {/* Modals */}
-
-      {/* <ContactEditModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        contact={selectedContact}
-      />  */}
     </Layout>
   );
 };

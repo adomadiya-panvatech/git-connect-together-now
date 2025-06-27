@@ -15,6 +15,10 @@ interface OpportunitiesProps {
   onOpenAccountModal?: () => void;
   onOpenSMSModal?: () => void;
   onOpenEmailModal?: () => void;
+  onOpenEditContactModal?: (contact: any) => void;
+  onOpenEditLeadModal?: (lead: any) => void;
+  onOpenEditOpportunityModal?: (opportunity: any) => void;
+  onOpenEditAccountModal?: (account: any) => void;
 }
 
 const Opportunities: React.FC<OpportunitiesProps> = ({
@@ -23,7 +27,11 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
   onOpenOpportunityModal,
   onOpenAccountModal,
   onOpenSMSModal,
-  onOpenEmailModal
+  onOpenEmailModal,
+  onOpenEditContactModal,
+  onOpenEditLeadModal,
+  onOpenEditOpportunityModal,
+  onOpenEditAccountModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStage, setFilterStage] = useState('all');
@@ -31,7 +39,6 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
   const { data: response, isLoading: opportunitiesLoading, error: opportunitiesError } = useOpportunities();
   const opportunities = response?.data ?? [];
 
-  // const { data: stats } = useOpportunityStats();
   const deleteOpportunityMutation = useDeleteOpportunity();
 
   console.log("opportunities", opportunities);
@@ -43,7 +50,6 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
   });
 
   console.log("filteredOpportunities", filteredOpportunities);
-
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -68,6 +74,12 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
   const handleDeleteOpportunity = (id: string) => {
     if (window.confirm('Are you sure you want to delete this opportunity?')) {
       deleteOpportunityMutation.mutate(id);
+    }
+  };
+
+  const handleEditOpportunity = (opportunity: any) => {
+    if (onOpenEditOpportunityModal) {
+      onOpenEditOpportunityModal(opportunity);
     }
   };
 
@@ -99,58 +111,6 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
             Add Opportunity
           </Button>
         </div>
-
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {stats?.totalValue || '$465,000'}
-              </div>
-              <p className="text-sm text-green-600">
-                {stats?.valueGrowth || '+12% from last month'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Deals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {stats?.activeDeals || opportunities.length}
-              </div>
-              <p className="text-sm text-blue-600">
-                {stats?.closingThisMonth || '2 closing this month'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Win Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {stats?.winRate || '75%'}
-              </div>
-              <p className="text-sm text-green-600">Above average</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Avg Deal Size</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {stats?.avgDealSize || '$93,000'}
-              </div>
-              <p className="text-sm text-gray-600">Last 30 days</p>
-            </CardContent>
-          </Card>
-        </div> */}
 
         {/* Filters and Search */}
         <Card>
@@ -228,7 +188,11 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
                             <Button variant="ghost" size="sm">
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditOpportunity(opportunity)}
+                            >
                               <Edit2 className="w-4 h-4" />
                             </Button>
                             <Button

@@ -15,6 +15,10 @@ interface LeadsProps {
   onOpenAccountModal?: () => void;
   onOpenSMSModal?: () => void;
   onOpenEmailModal?: () => void;
+  onOpenEditContactModal?: (contact: any) => void;
+  onOpenEditLeadModal?: (lead: any) => void;
+  onOpenEditOpportunityModal?: (opportunity: any) => void;
+  onOpenEditAccountModal?: (account: any) => void;
 }
 
 const Leads: React.FC<LeadsProps> = ({
@@ -23,7 +27,11 @@ const Leads: React.FC<LeadsProps> = ({
   onOpenOpportunityModal,
   onOpenAccountModal,
   onOpenSMSModal,
-  onOpenEmailModal
+  onOpenEmailModal,
+  onOpenEditContactModal,
+  onOpenEditLeadModal,
+  onOpenEditOpportunityModal,
+  onOpenEditAccountModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -72,6 +80,12 @@ const Leads: React.FC<LeadsProps> = ({
   const handleDeleteLead = (id: string) => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
       deleteLeadMutation.mutate(id);
+    }
+  };
+
+  const handleEditLead = (lead: any) => {
+    if (onOpenEditLeadModal) {
+      onOpenEditLeadModal(lead);
     }
   };
 
@@ -251,7 +265,11 @@ const Leads: React.FC<LeadsProps> = ({
                             <Button variant="ghost" size="sm">
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditLead(lead)}
+                            >
                               <Edit2 className="w-4 h-4" />
                             </Button>
                             <Button
