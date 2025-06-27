@@ -18,6 +18,7 @@ interface OpportunitiesProps {
   onOpenEditContactModal?: (contact: any) => void;
   onOpenEditLeadModal?: (lead: any) => void;
   onOpenEditOpportunityModal?: (opportunity: any) => void;
+  onOpenViewOpportunityModal?: (opportunity: any) => void;
   onOpenEditAccountModal?: (account: any) => void;
 }
 
@@ -31,6 +32,7 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
   onOpenEditContactModal,
   onOpenEditLeadModal,
   onOpenEditOpportunityModal,
+  onOpenViewOpportunityModal,
   onOpenEditAccountModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,15 +43,12 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
 
   const deleteOpportunityMutation = useDeleteOpportunity();
 
-  console.log("opportunities", opportunities);
   const filteredOpportunities = opportunities.filter((opp: any) => {
     const matchesSearch = opp.opportunity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       opp.company?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStage === 'all' || opp.stage?.toLowerCase() === filterStage.toLowerCase();
     return matchesSearch && matchesFilter;
   });
-
-  console.log("filteredOpportunities", filteredOpportunities);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -80,6 +79,12 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
   const handleEditOpportunity = (opportunity: any) => {
     if (onOpenEditOpportunityModal) {
       onOpenEditOpportunityModal(opportunity);
+    }
+  };
+
+  const handleViewOpportunity = (opportunity: any) => {
+    if (onOpenViewOpportunityModal) {
+      onOpenViewOpportunityModal(opportunity);
     }
   };
 
@@ -185,7 +190,11 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewOpportunity(opportunity)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button 

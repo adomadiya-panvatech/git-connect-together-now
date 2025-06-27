@@ -19,6 +19,7 @@ interface AccountsProps {
   onOpenEditLeadModal?: (lead: any) => void;
   onOpenEditOpportunityModal?: (opportunity: any) => void;
   onOpenEditAccountModal?: (account: any) => void;
+  onOpenViewAccountModal?: (account: any) => void;
 }
 
 const Accounts: React.FC<AccountsProps> = ({
@@ -31,7 +32,8 @@ const Accounts: React.FC<AccountsProps> = ({
   onOpenEditContactModal,
   onOpenEditLeadModal,
   onOpenEditOpportunityModal,
-  onOpenEditAccountModal
+  onOpenEditAccountModal,
+  onOpenViewAccountModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -68,6 +70,12 @@ const Accounts: React.FC<AccountsProps> = ({
   const handleEditAccount = (account: any) => {
     if (onOpenEditAccountModal) {
       onOpenEditAccountModal(account);
+    }
+  };
+
+  const handleViewAccount = (account: any) => {
+    if (onOpenViewAccountModal) {
+      onOpenViewAccountModal(account);
     }
   };
 
@@ -232,7 +240,11 @@ const Accounts: React.FC<AccountsProps> = ({
                         <TableCell className="font-semibold text-green-600">{account.revenue}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewAccount(account)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button 

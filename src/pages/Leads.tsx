@@ -17,6 +17,7 @@ interface LeadsProps {
   onOpenEmailModal?: () => void;
   onOpenEditContactModal?: (contact: any) => void;
   onOpenEditLeadModal?: (lead: any) => void;
+  onOpenViewLeadModal?: (lead: any) => void;
   onOpenEditOpportunityModal?: (opportunity: any) => void;
   onOpenEditAccountModal?: (account: any) => void;
 }
@@ -30,6 +31,7 @@ const Leads: React.FC<LeadsProps> = ({
   onOpenEmailModal,
   onOpenEditContactModal,
   onOpenEditLeadModal,
+  onOpenViewLeadModal,
   onOpenEditOpportunityModal,
   onOpenEditAccountModal
 }) => {
@@ -86,6 +88,12 @@ const Leads: React.FC<LeadsProps> = ({
   const handleEditLead = (lead: any) => {
     if (onOpenEditLeadModal) {
       onOpenEditLeadModal(lead);
+    }
+  };
+
+  const handleViewLead = (lead: any) => {
+    if (onOpenViewLeadModal) {
+      onOpenViewLeadModal(lead);
     }
   };
 
@@ -262,7 +270,11 @@ const Leads: React.FC<LeadsProps> = ({
                         <TableCell>{lead.lastActivity || lead.updatedAt}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewLead(lead)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button 

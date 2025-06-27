@@ -16,6 +16,7 @@ interface ContactsProps {
   onOpenSMSModal?: () => void;
   onOpenEmailModal?: () => void;
   onOpenEditContactModal?: (contact: any) => void;
+  onOpenViewContactModal?: (contact: any) => void;
   onOpenEditLeadModal?: (lead: any) => void;
   onOpenEditOpportunityModal?: (opportunity: any) => void;
   onOpenEditAccountModal?: (account: any) => void;
@@ -29,6 +30,7 @@ const Contacts: React.FC<ContactsProps> = ({
   onOpenSMSModal,
   onOpenEmailModal,
   onOpenEditContactModal,
+  onOpenViewContactModal,
   onOpenEditLeadModal,
   onOpenEditOpportunityModal,
   onOpenEditAccountModal
@@ -79,6 +81,12 @@ const Contacts: React.FC<ContactsProps> = ({
   const handleEditContact = (contact: any) => {
     if (onOpenEditContactModal) {
       onOpenEditContactModal(contact);
+    }
+  };
+
+  const handleViewContact = (contact: any) => {
+    if (onOpenViewContactModal) {
+      onOpenViewContactModal(contact);
     }
   };
 
@@ -246,7 +254,11 @@ const Contacts: React.FC<ContactsProps> = ({
                         <TableCell>{contact.lastContact || contact.updatedAt}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewContact(contact)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button 
