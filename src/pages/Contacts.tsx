@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { Search, Filter, MoreHorizontal, Eye, Edit2, Users, UserPlus, TrendingUp, Star } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Eye, Edit2, Trash2, Users, UserCheck, Phone, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useContacts, useContactStats, useDeleteContact } from '@/hooks/useContacts';
+import { useToast } from '@/hooks/use-toast';
 
 interface ContactsProps {
   onOpenContactModal?: () => void;
@@ -17,9 +17,6 @@ interface ContactsProps {
   onOpenEmailModal?: () => void;
   onOpenEditContactModal?: (contact: any) => void;
   onOpenViewContactModal?: (contact: any) => void;
-  onOpenEditLeadModal?: (lead: any) => void;
-  onOpenEditOpportunityModal?: (opportunity: any) => void;
-  onOpenEditAccountModal?: (account: any) => void;
 }
 
 const Contacts: React.FC<ContactsProps> = ({
@@ -30,10 +27,7 @@ const Contacts: React.FC<ContactsProps> = ({
   onOpenSMSModal,
   onOpenEmailModal,
   onOpenEditContactModal,
-  onOpenViewContactModal,
-  onOpenEditLeadModal,
-  onOpenEditOpportunityModal,
-  onOpenEditAccountModal
+  onOpenViewContactModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -42,11 +36,12 @@ const Contacts: React.FC<ContactsProps> = ({
   const contacts = Array.isArray(contactsResponse?.data) ? contactsResponse.data : [];
 
   const { data: stats } = useContactStats();
+
   const deleteContactMutation = useDeleteContact();
+  const { toast } = useToast();
 
   const filteredContacts = Array.isArray(contacts) ? contacts.filter((contact: any) => {
     const matchesSearch = contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.company?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || contact.status?.toLowerCase() === filterStatus.toLowerCase();
     return matchesSearch && matchesFilter;
@@ -55,26 +50,29 @@ const Contacts: React.FC<ContactsProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
+      case 'inactive': return 'bg-red-100 text-red-800';
       case 'prospect': return 'bg-blue-100 text-blue-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
+      case 'customer': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getSourceColor = (source: string) => {
-    switch (source) {
-      case 'Website': return 'bg-blue-100 text-blue-800';
-      case 'LinkedIn': return 'bg-purple-100 text-purple-800';
-      case 'Referral': return 'bg-green-100 text-green-800';
-      case 'Trade Show': return 'bg-yellow-100 text-yellow-800';
-      case 'Cold Call': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleDeleteContact = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this contact?')) {
-      deleteContactMutation.mutate(id);
+  const handleDeleteContact = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+      try {
+        await deleteContactMutation.mutateAsync(id);
+        toast({
+          title: "Success",
+          description: `${name} has been deleted successfully`,
+        });
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete contact. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -109,7 +107,7 @@ const Contacts: React.FC<ContactsProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-            <p className="text-gray-600 mt-1">Manage your customer relationships and contacts</p>
+            <p className="text-gray-600 mt-1">Manage your customer and prospect relationships</p>
           </div>
           <Button
             onClick={onOpenContactModal}
@@ -140,23 +138,7 @@ const Contacts: React.FC<ContactsProps> = ({
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <UserPlus className="w-4 h-4" />
-                New This Month
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {stats?.newThisMonth || '12'}
-              </div>
-              <p className="text-sm text-blue-600">
-                {stats?.monthlyGrowth || '20% increase'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
+                <UserCheck className="w-4 h-4" />
                 Active Contacts
               </CardTitle>
             </CardHeader>
@@ -164,21 +146,37 @@ const Contacts: React.FC<ContactsProps> = ({
               <div className="text-2xl font-bold text-gray-900">
                 {stats?.active || contacts.filter((c: any) => c.status === 'active').length}
               </div>
-              <p className="text-sm text-green-600">Engaged recently</p>
+              <p className="text-sm text-blue-600">
+                {stats?.activeGrowth || '10% increase'}
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <Star className="w-4 h-4" />
-                Top Prospects
+                <Phone className="w-4 h-4" />
+                Call Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                {stats?.prospects || contacts.filter((c: any) => c.status === 'prospect').length}
+                {stats?.calls || '250'}
               </div>
-              <p className="text-sm text-yellow-600">High potential</p>
+              <p className="text-sm text-green-600">Monthly calls</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email Engagement
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">
+                {stats?.emails || '120'}
+              </div>
+              <p className="text-sm text-purple-600">Emails sent</p>
             </CardContent>
           </Card>
         </div>
@@ -204,10 +202,11 @@ const Contacts: React.FC<ContactsProps> = ({
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">All Status</option>
+                  <option value="all">All Statuses</option>
                   <option value="active">Active</option>
-                  <option value="prospect">Prospect</option>
                   <option value="inactive">Inactive</option>
+                  <option value="prospect">Prospect</option>
+                  <option value="customer">Customer</option>
                 </select>
               </div>
             </div>
@@ -223,13 +222,12 @@ const Contacts: React.FC<ContactsProps> = ({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Position</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
-                      <TableHead>Source</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Position</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Last Contact</TableHead>
+                      <TableHead>Source</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -237,21 +235,16 @@ const Contacts: React.FC<ContactsProps> = ({
                     {filteredContacts.map((contact: any) => (
                       <TableRow key={contact.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">{contact.name}</TableCell>
+                        <TableCell>{contact.email}</TableCell>
+                        <TableCell>{contact.phone}</TableCell>
                         <TableCell>{contact.company}</TableCell>
-                        <TableCell>{contact.position || contact.jobTitle}</TableCell>
-                        <TableCell className="text-blue-600">{contact.email}</TableCell>
-                        <TableCell className="text-gray-600">{contact.phone}</TableCell>
+                        <TableCell>{contact.position}</TableCell>
                         <TableCell>
-                          <Badge className={getSourceColor(contact.source || 'Other')}>
-                            {contact.source || 'Other'}
+                          <Badge className={getStatusColor(contact.status || 'inactive')}>
+                            {contact.status || 'inactive'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(contact.status || 'active')}>
-                            {contact.status || 'active'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{contact.lastContact || contact.updatedAt}</TableCell>
+                        <TableCell>{contact.source}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Button 
@@ -271,10 +264,10 @@ const Contacts: React.FC<ContactsProps> = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteContact(contact.id)}
+                              onClick={() => handleDeleteContact(contact.id, contact.name)}
                               disabled={deleteContactMutation.isPending}
                             >
-                              <MoreHorizontal className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>

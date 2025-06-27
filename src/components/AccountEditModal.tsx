@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Building2, Mail, Phone, MapPin, Globe } from 'lucide-react';
 import { useUpdateAccount } from '@/hooks/useAccounts';
+import { useToast } from '@/hooks/use-toast';
 
 interface Account {
   id: string;
@@ -44,6 +44,7 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
   });
 
   const updateAccountMutation = useUpdateAccount();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (account) {
@@ -70,10 +71,18 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
     
     try {
       await updateAccountMutation.mutateAsync({ id: account.id, data: formData });
-      console.log('Account updated successfully');
+      toast({
+        title: "Success",
+        description: "Account updated successfully",
+      });
       onClose();
     } catch (error) {
       console.error('Error updating account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update account. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

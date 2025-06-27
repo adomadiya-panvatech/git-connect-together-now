@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, DollarSign, Calendar, Building2 } from 'lucide-react';
 import { useUpdateOpportunity } from '@/hooks/useOpportunities';
+import { useToast } from '@/hooks/use-toast';
 
 interface Opportunity {
   id: string;
@@ -40,6 +40,7 @@ export const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
   });
 
   const updateOpportunityMutation = useUpdateOpportunity();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (opportunity) {
@@ -64,10 +65,18 @@ export const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
     
     try {
       await updateOpportunityMutation.mutateAsync({ id: opportunity.id, data: formData });
-      console.log('Opportunity updated successfully');
+      toast({
+        title: "Success",
+        description: "Opportunity updated successfully",
+      });
       onClose();
     } catch (error) {
       console.error('Error updating opportunity:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update opportunity. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

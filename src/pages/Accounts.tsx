@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { Search, Filter, MoreHorizontal, Eye, Edit2, Building2, Users, TrendingUp, Star } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Eye, Edit2, Building2, Users, TrendingUp, Star, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAccounts, useAccountStats, useDeleteAccount } from '@/hooks/useAccounts';
+import { useToast } from '@/hooks/use-toast';
 
 interface AccountsProps {
   onOpenContactModal?: () => void;
@@ -43,6 +43,7 @@ const Accounts: React.FC<AccountsProps> = ({
 
   const { data: stats } = useAccountStats();
   const deleteAccountMutation = useDeleteAccount();
+  const { toast } = useToast();
 
   const filteredAccounts = Array.isArray(accounts) ? accounts.filter((account: any) => {
     const matchesSearch = account.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,9 +62,22 @@ const Accounts: React.FC<AccountsProps> = ({
     }
   };
 
-  const handleDeleteAccount = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this account?')) {
-      deleteAccountMutation.mutate(id);
+  const handleDeleteAccount = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+      try {
+        await deleteAccountMutation.mutateAsync(id);
+        toast({
+          title: "Success",
+          description: `${name} has been deleted successfully`,
+        });
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete account. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -257,10 +271,10 @@ const Accounts: React.FC<AccountsProps> = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteAccount(account.id)}
+                              onClick={() => handleDeleteAccount(account.id, account.name)}
                               disabled={deleteAccountMutation.isPending}
                             >
-                              <MoreHorizontal className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>

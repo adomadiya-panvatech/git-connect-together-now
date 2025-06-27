@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, Building2, MapPin } from 'lucide-react';
 import { useUpdateLead } from '@/hooks/useLeads';
+import { useToast } from '@/hooks/use-toast';
 
 interface Lead {
   id: string;
@@ -43,6 +44,7 @@ export const LeadEditModal: React.FC<LeadEditModalProps> = ({
   });
 
   const updateLeadMutation = useUpdateLead();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (lead) {
@@ -76,10 +78,18 @@ export const LeadEditModal: React.FC<LeadEditModalProps> = ({
       };
       
       await updateLeadMutation.mutateAsync({ id: lead.id, data: leadData });
-      console.log('Lead updated successfully');
+      toast({
+        title: "Success",
+        description: "Lead updated successfully",
+      });
       onClose();
     } catch (error) {
       console.error('Error updating lead:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update lead. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Search, Filter, MoreHorizontal, Eye, Edit2, Trash2 } from 'lucide-react';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useOpportunities, useOpportunityStats, useDeleteOpportunity } from '@/hooks/useOpportunities';
+import { useToast } from '@/hooks/use-toast';
 
 interface OpportunitiesProps {
   onOpenContactModal?: () => void;
@@ -42,6 +42,7 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
   const opportunities = response?.data ?? [];
 
   const deleteOpportunityMutation = useDeleteOpportunity();
+  const { toast } = useToast();
 
   const filteredOpportunities = opportunities.filter((opp: any) => {
     const matchesSearch = opp.opportunity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,9 +71,22 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
     }
   };
 
-  const handleDeleteOpportunity = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this opportunity?')) {
-      deleteOpportunityMutation.mutate(id);
+  const handleDeleteOpportunity = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+      try {
+        await deleteOpportunityMutation.mutateAsync(id);
+        toast({
+          title: "Success",
+          description: `${name} has been deleted successfully`,
+        });
+      } catch (error) {
+        console.error('Error deleting opportunity:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete opportunity. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -207,7 +221,7 @@ const Opportunities: React.FC<OpportunitiesProps> = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteOpportunity(opportunity.id)}
+                              onClick={() => handleDeleteOpportunity(opportunity.id, opportunity.title || opportunity.name)}
                               disabled={deleteOpportunityMutation.isPending}
                             >
                               <Trash2 className="w-4 h-4" />
